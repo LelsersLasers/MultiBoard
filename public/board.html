@@ -163,6 +163,7 @@
         
         <div id="sidebar">
             <h2 id="id">ID: ?</h2>
+            <button id="copy" onclick="copyLink()">Copy link</button>
 
             <hr />
 
@@ -237,6 +238,18 @@
         link.download = `${boardId}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
+    }
+
+    let linkCopiedTimeout = null;
+    function copyLink() {
+        navigator.clipboard.writeText(url);
+        document.getElementById("copy").innerHTML = "Copied!";
+
+        if (linkCopiedTimeout) clearTimeout(linkCopiedTimeout);
+
+        linkCopiedTimeout = setTimeout(() => {
+            document.getElementById("copy").innerHTML = "Copy link";
+        }, 3000);
     }
 
     

@@ -21,6 +21,7 @@ const PORT = 3000;
 
 app.use(express.static('public'));
 
+const MAX_BOARD_LIFE = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 
 //----------------------------------------------------------------------------//
@@ -38,6 +39,7 @@ function createBoard(public) {
 	const id = createId();
 	boards[id] = {
 		public,
+		timestamp: Date.now(),
 		lines: {},
 	};
 
@@ -80,10 +82,18 @@ app.get('/board/:id', (req, res) => {
 		return;
 	}
 
+	boards[id].timestamp = Date.now();
 	res.sendFile(__dirname + '/public/board.html');
 });
 
 app.get('/', (req, res) => {
+	const now = Date.now();
+	for (const id in boards) {
+		if (now - boards[id].timestamp > MAX_BOARD_LIFE) {
+			delete boards[id];
+		}
+	}
+
 	res.sendFile(__dirname + '/public/index.html');
 })
 
@@ -113,11 +123,16 @@ io.on('connection', (socket) => {
 
 		boards[id].lines[lineId] = line;
 
+		boards[id].timestamp = Date.now();
+
 		io.emit(`board-${id}`, boards[id]);
 	});
 
 	socket.on('clear', (boardId) => {
 		boards[boardId].lines = {};
+
+		boards[id].timestamp = Date.now();
+		
 		io.emit(`board-${boardId}`, boards[boardId]);
 	});
 });

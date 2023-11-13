@@ -185,7 +185,12 @@
             <hr />
 
             <button id="save" onclick="saveAsPng()">Save as PNG</button>
-            <button id="clear" onclick="clearBoard()">Clear</button>
+            <button id="clear" onclick="clearBoard()" style="margin-bottom: 0;">Clear</button>
+
+            <hr />
+
+            <button id="back" onclick="back()">Exit</button>
+
 
         </div>
     </div>
@@ -296,6 +301,10 @@
         const sidebarW = (window.innerWidth * w - 3 * EM);
         const sidebarEle = document.getElementById("sidebar");
         sidebarEle.style.width = sidebarW + "px";
+    }
+
+    function back() {
+        window.location.href = "/";
     }
 
     function saveAsPng() {

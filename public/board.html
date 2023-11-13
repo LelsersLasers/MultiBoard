@@ -8,14 +8,77 @@
     <title id="title">MultiBoard: ?</title>
 
     <!-- Pico.css (Classless version) -->
-    <link
+    <!-- <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.classless.min.css"
-    />
-    <link rel="stylesheet" href="css/styles.css" />
+    />  -->
 
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            background-color: #2E3440;
+            color: #ECEFF4;
+        }
+
+        canvas {
+            margin: 0 auto;
+            padding: 0;
+            border-radius: 0.5em;
+            border: 4px solid #EBCB8B;
+        }
+
+        div {
+            margin: 0;
+            padding: 0;
+        }
+
+        #mainbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            margin: 1em;
+            margin-right: 0;
+        }
+
+        #sidebar {
+            overflow: auto;
+
+            background-color: #3B4252;
+
+            padding: 1em;
+            margin: 1em;
+            border-radius: 0.5em;
+        }
+
+        #main {
+            width: 100%;
+            height: 100%;
+            display: flex;
+
+            justify-content: center;
+        }
+    </style>
 </head>
+
+<body onresize="resize()">
+    <div id="main">
+        <div id="mainbar">
+            <canvas id="canvas"></canvas>
+        </div>
+        <div id="sidebar"></div>
+    </div>
+
+</body>
 
 <script>
     const url = window.location.href;
@@ -25,8 +88,31 @@
 
     const socket = io("http://localhost:3000");
 
-</script>
 
-<body>
-    Board!
-</body>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ECEFF4";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
+
+    function resize() {
+        const EM = 16; // 1em = 16px (usually)
+        const maxW = window.innerWidth * (3 / 4) - 3 * EM - 8;
+        const maxH = window.innerHeight - 2 * EM - 8;
+
+        const w = Math.min(maxW, maxH);
+        
+        canvas.style.width = w + "px";
+        canvas.style.height = w + "px";
+
+        const sidebarW = (window.innerWidth * w - 3 * EM);
+        const sidebarEle = document.getElementById("sidebar");
+        sidebarEle.style.width = sidebarW + "px";
+    }
+
+
+
+
+    resize();
+</script>

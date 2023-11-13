@@ -28,7 +28,6 @@ const boards = {};
 
 function createId() {
 	const id = Math.random().toString(36).substring(2, 7).toUpperCase();
-	console.log(id);
 	if (boards[id]) {
 		return createId();
 	}

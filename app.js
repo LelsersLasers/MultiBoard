@@ -41,6 +41,7 @@ function createBoard(public) {
 		public,
 		timestamp: Date.now(),
 		lines: {},
+		mice: {},
 	};
 
 	if (public) {
@@ -121,11 +122,33 @@ io.on('connection', (socket) => {
 			return;
 		}
 
-		boards[id].lines[lineId] = line;
+		boards[boardId].lines[lineId] = line;
 
-		boards[id].timestamp = Date.now();
+		boards[boardId].timestamp = Date.now();
 
-		io.emit(`board-${id}`, boards[id]);
+		io.emit(`board-${boardId}`, boards[boardId]);
+	});
+
+
+	socket.on('inputMove', ({ boardId, mouseX, mouseY }) => {
+		if (!boards[boardId]) {
+			return;
+		}
+
+		const timestamp = Date.now();
+
+		if (!boards[boardId].mice[socket.id]) {
+			const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+			boards[boardId].mice[socket.id] = { mouseX, mouseY, timestamp, color };
+		} else {
+			boards[boardId].mice[socket.id].mouseX = mouseX;
+			boards[boardId].mice[socket.id].mouseY = mouseY;
+			boards[boardId].mice[socket.id].timestamp = timestamp;
+		}
+
+		boards[boardId].timestamp = timestamp;
+
+		io.emit(`board-${boardId}`, boards[id]);
 	});
 
 	socket.on('clear', (boardId) => {

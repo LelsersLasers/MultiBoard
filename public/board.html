@@ -214,6 +214,7 @@
     let board = {
         public: null,
         lines: {},
+        mice: {},
     };
 
     let currentLine = {};
@@ -261,6 +262,8 @@
 
             socket.emit('lineUpdate', { boardId, lineId: currentLineId, line: currentLine });
         }
+
+        socket.emit('inputMove', { boardId, mouseX, mouseY });
     }
 
     canvas.addEventListener("touchstart", (e) => inputStart(e.touches[0].clientX, e.touches[0].clientY));
@@ -359,6 +362,29 @@
             ctx.beginPath();
             ctx.ellipse(endX, endY, ctx.lineWidth / 2, ctx.lineWidth / 2, 0, 0, 2 * Math.PI);
             ctx.fill();
+        }
+
+        const now = Date.now();
+        for (const socketId in board.mice) {
+            if (socketId == socket.id) continue;
+
+            const mouse = board.mice[socketId];
+            if (mouse.timestamp + 5000 < now) {
+                continue;
+            }
+
+            ctx.fillStyle = mouse.color;
+
+            ctx.beginPath();
+            ctx.ellipse(mouse.mouseX * canvas.width, mouse.mouseY * canvas.height, 4, 4, 0, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.strokeStyle = BACKGROUND_COLOR;
+            ctx.lineWidth = 1;
+
+            ctx.beginPath();
+            ctx.ellipse(mouse.mouseX * canvas.width, mouse.mouseY * canvas.height, 4, 4, 0, 0, 2 * Math.PI);
+            ctx.stroke();
         }
 
 

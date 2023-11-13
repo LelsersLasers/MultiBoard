@@ -27,6 +27,9 @@
 
             background-color: #2E3440;
             color: #ECEFF4;
+
+            font-family: Calibri, sans-serif;
+            font-size: 16px;
         }
 
         canvas {
@@ -34,6 +37,7 @@
             padding: 0;
             border-radius: 0.5em;
             border: 4px solid #EBCB8B;
+            cursor: crosshair;
         }
 
         div {
@@ -56,6 +60,7 @@
             background-color: #3B4252;
 
             padding: 1em;
+            padding-top: 0;
             margin: 1em;
             border-radius: 0.5em;
         }
@@ -67,6 +72,86 @@
 
             justify-content: center;
         }
+
+        .spacing {
+            content: "";
+            display: block;
+            margin: 0.3em;
+        }
+        hr {
+            background-color: #ECEFF4;
+            border: none;
+            height: 1px;
+            border-radius: 10px;
+        }
+
+        label {
+            color: #ECEFF4;
+            height: 1.2em;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        input {
+            height: 1.2em;
+            font-size: 1em;
+            padding: 0.8em 0.5em;
+            box-sizing: border-box;
+            background-color: #4C566A;
+            color: #ECEFF4;
+            border-radius: 7px;
+            /* width: 100%; */
+            border: none;
+            outline: none !important;
+        }
+        input:focus {
+            outline: 2px solid #EBCB8B !important;
+        }
+        input[type="color"] {
+            width: default;
+            padding: 0.15em;
+            height: 1.8em;
+            transform: translate(0, 0.2em);
+        }
+        input[type="checkbox"] {
+            width: 0.9em;
+            height: 1.1em;
+            padding: 0px;
+            margin: 0px;
+            margin-bottom: 0.15em;
+            vertical-align: middle;
+            position: relative;
+            color: #ECEFF4;
+            outline: none !important;
+            cursor: pointer;
+        }
+        input[type="range"] {
+            width: 100%;
+            color: #ECEFF4;
+            outline: none !important;
+            border: none !important;
+            padding: 0;
+            margin: 0;
+        }
+
+        button {
+            font-size: 1em;
+            border: none;
+            padding: 0.3em 2em;
+            background-color: #5E81AC;
+            color: #ECEFF4;
+            cursor: pointer;
+            border-radius: 7px;
+            width: 100%;
+            margin-bottom: 0.5em;
+            outline: none;
+        }
+        button:focus {
+            outline: 2px solid #EBCB8B;
+        }
+        .smallInput {
+            width: 3em;
+        }
     </style>
 </head>
 
@@ -75,7 +160,33 @@
         <div id="mainbar">
             <canvas id="canvas"></canvas>
         </div>
-        <div id="sidebar"></div>
+        
+        <div id="sidebar">
+            <h2 id="id">ID: ?</h2>
+
+            <hr />
+
+            <label for="color">Color: </label>
+            <input type="color" id="color" name="color" value="#ECEFF4" />
+
+            <br class="spacing" />
+
+            <label for="erase">Eraser: </label>
+            <input type="checkbox" id="erase" name="erase" />
+
+            <br class="spacing" />
+
+            <label for="size">Size: </label>
+            <output>10</output>
+            <input type="range" id="size" name="size" min="1" max="50" step="1" value="5" oninput="this.previousElementSibling.value = this.value" />
+
+
+            <hr />
+
+            <button id="save" onclick="saveAsPng()">Save as PNG</button>
+            <button id="clear">Clear</button>
+
+        </div>
     </div>
 
 </body>
@@ -84,6 +195,7 @@
     const url = window.location.href;
     const boardId = url.substring(url.lastIndexOf("/") + 1);
     document.getElementById("title").innerHTML = `MultiBoard: ${boardId}`;
+    document.getElementById("id").innerHTML = `ID: ${boardId}`;
 
 
     const socket = io("http://localhost:3000");
@@ -112,6 +224,12 @@
     }
 
 
+    function saveAsPng() {
+        const link = document.createElement("a");
+        link.download = `${boardId}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    }
 
 
     resize();

@@ -37,7 +37,7 @@
             padding: 0;
             border-radius: 0.5em;
             border: 4px solid #EBCB8B;
-            cursor: crosshair;
+            cursor: none;
         }
 
         div {
@@ -179,7 +179,7 @@
 
             <label for="size">Size: </label>
             <output>25</output>
-            <input type="range" id="size" name="size" min="1" max="100" step="1" value="25" oninput="this.previousElementSibling.value = this.value" />
+            <input type="range" id="size" name="size" min="1" max="200" step="1" value="25" oninput="this.previousElementSibling.value = this.value" />
 
 
             <hr />
@@ -204,6 +204,7 @@
 
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
+    const BACKGROUND_COLOR = "#ECEFF4";
 
 
     let mouseDown = false;
@@ -220,8 +221,6 @@
 
     let currentLine = {};
     let currentLineId = null;
-
-    let redraw = true;
 
     function createId() {
         const id = Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -240,8 +239,9 @@
         mouseY = (e.clientY - rect.top) / canvas.height;
 
         currentLineId = createId();
+        const eraser = document.getElementById("erase").checked;
         currentLine = {
-            color: document.getElementById("color").value,
+            color: !eraser ? document.getElementById("color").value : BACKGROUND_COLOR,
             size: document.getElementById("size").value,
             points: [{
                 mouseX,
@@ -254,18 +254,17 @@
         mouseDown = false;
     });
     canvas.addEventListener("mousemove", (e) => {
-        if (mouseDown) {
-            const rect = canvas.getBoundingClientRect();
-            mouseX = (e.clientX - rect.left) / canvas.width;
-            mouseY = (e.clientY - rect.top) / canvas.height;
+        const rect = canvas.getBoundingClientRect();
+        mouseX = (e.clientX - rect.left) / canvas.width;
+        mouseY = (e.clientY - rect.top) / canvas.height;
 
+        if (mouseDown) {
             currentLine.points.push({
                 mouseX,
                 mouseY,
             });
 
             socket.emit('lineUpdate', { boardId, lineId: currentLineId, line: currentLine });
-
         }
     });
 
@@ -274,7 +273,6 @@
     }
 
     socket.on(`board-${boardId}`, (newBoard) => {
-        redraw = true;
         board = newBoard;
     });
 
@@ -298,8 +296,6 @@
         const sidebarW = (window.innerWidth * w - 3 * EM);
         const sidebarEle = document.getElementById("sidebar");
         sidebarEle.style.width = sidebarW + "px";
-
-        redraw = true;
     }
 
     function saveAsPng() {
@@ -323,29 +319,60 @@
 
     
     function loop() {
-        if (redraw) {
-            ctx.fillStyle = "#ECEFF4";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = BACKGROUND_COLOR;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 
-            for (const lineId in board.lines) {
-                const line = board.lines[lineId];
+        for (const lineId in board.lines) {
+            const line = board.lines[lineId];
 
-                ctx.beginPath();
-                ctx.strokeStyle = line.color;
-                ctx.lineWidth = Math.max(line.size * canvas.width / 5000, 1);
-                
-                ctx.moveTo(line.points[0].mouseX * canvas.width, line.points[0].mouseY * canvas.height);
-                for (let i = 0; i < line.points.length; i++) {
-                    const { mouseX, mouseY } = line.points[i];
-                    ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
-                }
-                ctx.stroke();
+            ctx.strokeStyle = line.color;
+            ctx.fillStyle = line.color;
+            ctx.lineWidth = Math.max(line.size * canvas.width / 5000, 1);
+
+            const startX = line.points[0].mouseX * canvas.width;
+            const startY = line.points[0].mouseY * canvas.height;
+
+            ctx.beginPath();
+            ctx.ellipse(startX, startY, ctx.lineWidth / 2, ctx.lineWidth / 2, 0, 0, 2 * Math.PI);
+            ctx.fill();
+
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            for (let i = 0; i < line.points.length; i++) {
+                const { mouseX, mouseY } = line.points[i];
+                ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
             }
+            ctx.stroke();
 
+            const endX = line.points[line.points.length - 1].mouseX * canvas.width;
+            const endY = line.points[line.points.length - 1].mouseY * canvas.height;
 
-            redraw = false;
+            ctx.beginPath();
+            ctx.ellipse(endX, endY, ctx.lineWidth / 2, ctx.lineWidth / 2, 0, 0, 2 * Math.PI);
+            ctx.fill();
         }
+
+
+        const lineSize = document.getElementById("size").value;
+        const radius = Math.max(lineSize * canvas.width / 5000, 1) / 2;
+
+        ctx.strokeStyle = BACKGROUND_COLOR;
+        ctx.lineWidth = 3;
+
+        ctx.beginPath();
+        ctx.ellipse(mouseX * canvas.width, mouseY * canvas.height, radius, radius, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        2E3440
+        ctx.strokeStyle = "#2E3440";
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+        ctx.ellipse(mouseX * canvas.width, mouseY * canvas.height, radius, radius, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+
 
         window.requestAnimationFrame(loop);
     }

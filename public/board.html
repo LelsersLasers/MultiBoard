@@ -228,12 +228,12 @@
     }
 
 
-    canvas.addEventListener("mousedown", (e) => {
+    function inputStart(clientX, clientY) {
         mouseDown = true;
 
         const rect = canvas.getBoundingClientRect();
-        mouseX = (e.clientX - rect.left) / canvas.width;
-        mouseY = (e.clientY - rect.top) / canvas.height;
+        mouseX = (clientX - rect.left) / canvas.width;
+        mouseY = (clientY - rect.top) / canvas.height;
 
         currentLineId = createId();
         const eraser = document.getElementById("erase").checked;
@@ -246,14 +246,12 @@
             }],
         };
         socket.emit('lineUpdate', { boardId, lineId: currentLineId, line: currentLine });
-    });
-    canvas.addEventListener("mouseup", (e) => {
-        mouseDown = false;
-    });
-    canvas.addEventListener("mousemove", (e) => {
+    }
+
+    function inputMove(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
-        mouseX = (e.clientX - rect.left) / canvas.width;
-        mouseY = (e.clientY - rect.top) / canvas.height;
+        mouseX = (clientX - rect.left) / canvas.width;
+        mouseY = (clientY - rect.top) / canvas.height;
 
         if (mouseDown) {
             currentLine.points.push({
@@ -263,7 +261,15 @@
 
             socket.emit('lineUpdate', { boardId, lineId: currentLineId, line: currentLine });
         }
-    });
+    }
+
+    canvas.addEventListener("touchstart", (e) => inputStart(e.touches[0].clientX, e.touches[0].clientY));
+    canvas.addEventListener("touchend", (e) => mouseDown = false);
+    canvas.addEventListener("touchmove", (e) => inputMove(e.touches[0].clientX, e.touches[0].clientY));
+
+    canvas.addEventListener("mousedown", (e) => inputStart(e.clientX, e.clientY));
+    canvas.addEventListener("mouseup", (e) => mouseDown = false);
+    canvas.addEventListener("mousemove", (e) => inputMove(e.clientX, e.clientY));
 
     function clearBoard() {
         socket.emit("clear", boardId);

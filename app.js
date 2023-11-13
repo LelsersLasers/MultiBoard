@@ -54,8 +54,7 @@ function createBoard(public) {
 
 //----------------------------------------------------------------------------//
 app.post('/create', urlencodedParser, (req, res) => {
-	const public = req.body.public;
-	console.log("create", public);
+	const public = req.body.public == "on";
 
 	const board_id = createBoard(public);
 

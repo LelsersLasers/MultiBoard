@@ -15,12 +15,31 @@
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 
     <style>
+        .zeroTopPadding {
+            padding-top: 0;
+        }
         .zeroBottomPadding {
-            padding-bottom: 0px;
+            padding-bottom: 0;
+        }
+        .zeroPadding {
+            padding: 0;
         }
     
         .zeroBottomMargin {
-            margin-bottom: 0px;
+            margin-bottom: 0 !important;
+        }
+        
+        .alignLeft {
+            display: flex;
+            flex-direction: row-reverse;
+        }
+
+        form {
+            font-size: inherit;
+        }
+
+        kbd {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -37,6 +56,9 @@
             boardItem.innerHTML = `<a href="/board/${board}"><kbd>${board}</kbd></a>`;
             boardsList.appendChild(boardItem);
         });
+
+        const noBoards = document.getElementById("noBoards");
+        noBoards.style.display = boards.length > 0 ? "none" : "block";
     });
 
 </script>
@@ -49,30 +71,59 @@
         </hgroup>
     </header>
 
-	<main>
-        <article class="zeroBottomMargin">
-            <h2>Create a board</h2>
-            <form action="/create" method="post">
-                <label for="public">
-                    <input type="checkbox" id="public" name="public" role="switch" />
-                    Public?
-                </label>
-                <button>Create</button>
-            </form>
-        </article>
-
-        <article class="zeroBottomMargin">
-            <h2>Join a private board</h2>
-            <form action="/join" method="post">
-                <label for="id">Board ID</label>
-                <input type="text" placeholder="Board ID" name="id" id="id" autocomplete="off" />
-                <button>Join</button>
-            </form>
-        </article>
-
-        <article class="zeroBottomMargin">
-            <h2>Join a public board</h2>
-            <ul id="publicBoards"></ul>
-        </article>
+	<main class="zeroTopPadding">
+        <table>
+            <tr>
+                <td>
+                    Create a board
+                </td>
+                <td>
+                    <form id="create" action="/create" method="post" class="zeroBottomMargin">
+                        <label for="public" class="zeroBottomMargin">
+                            Public:
+                            <input type="checkbox" class="zeroBottomMargin" id="public" name="public" role="switch" />
+                        </label>
+                    </form>
+                </td>
+                <td>
+                    <div class="alignLeft">
+                        <kbd onclick="create()">Create</kbd>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Join a private board
+                </td>
+                <td>
+                    <form id="join" action="/join" method="post" class="zeroBottomMargin">
+                        <input type="text" class="zeroPadding zeroBottomMargin" placeholder="Board ID" name="id" id="id" autocomplete="off" />
+                    </form>
+                </td>
+                <td>
+                    <div class="alignLeft">
+                        <kbd onclick="join()">Join</kbd>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        
+        <h4 class="zeroBottomMargin">Public Boards</h4>
+        <p id="noBoards">None</p>
+        <ul id="publicBoards"></ul>
     </main>
 </body>
+
+<script>
+    function create() {
+        const form = document.getElementById("create");
+        form.submit();
+    }
+
+    function join() {
+        const form = document.getElementById("join");
+        form.submit();
+    }
+
+
+</script>

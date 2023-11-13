@@ -55,6 +55,7 @@ function createBoard(public) {
 //----------------------------------------------------------------------------//
 app.post('/create', urlencodedParser, (req, res) => {
 	const public = req.body.public;
+	console.log("create", public);
 
 	const board_id = createBoard(public);
 
@@ -63,7 +64,7 @@ app.post('/create', urlencodedParser, (req, res) => {
 });
 
 app.post('/join', urlencodedParser, (req, res) => {
-	const id = req.body.id;
+	const id = req.body.id.toUpperCase();
 	if (!boards[id]) {
 		res.writeHead(302, { Location: '/' });
 		res.end();

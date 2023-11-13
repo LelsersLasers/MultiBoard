@@ -55,10 +55,10 @@
 
         <article class="zeroBottomMargin">
             <h2>Join a private board</h2>
-            <form>
-                <label for="boardId">Board ID</label>
-                <input type="text" placeholder="Board ID" name="boardId" id="boardId" />
-                <button disabled>Join</button>
+            <form action="/join" method="post">
+                <label for="id">Board ID</label>
+                <input type="text" placeholder="Board ID" name="id" id="id" autocomplete="off" />
+                <button>Join</button>
             </form>
         </article>
 

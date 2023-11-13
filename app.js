@@ -60,6 +60,18 @@ app.post('/create', urlencodedParser, (req, res) => {
 	res.end();
 });
 
+app.post('/join', urlencodedParser, (req, res) => {
+	const id = req.body.id;
+	if (!boards[id]) {
+		res.writeHead(302, { Location: '/' });
+		res.end();
+		return;
+	}
+
+	res.writeHead(302, { Location: `/board/${id}` });
+	res.end();
+});
+
 app.get('/board/:id', (req, res) => {
 	const id = req.params.id;
 	if (!boards[id]) {

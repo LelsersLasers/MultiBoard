@@ -38,6 +38,7 @@ function createBoard(public) {
 	const id = createId();
 	boards[id] = {
 		public,
+		lines: {},
 	};
 
 	if (public) {
@@ -101,7 +102,22 @@ function emitPublicBoards() {
 
 io.on('connection', (socket) => {
 	emitPublicBoards();
+	for (id in boards) {
+		socket.emit(`board-${id}`, boards[id]);
+	}
+
+	socket.on('lineUpdate', ({ boardId, lineId, line }) => {
+		console.log(`lineUpdate: ${boardId} ${lineId} ${line}`)
+		if (!boards[boardId]) {
+			return;
+		}
+
+		boards[id].lines[lineId] = line;
+
+		io.emit(`board-${id}`, boards[id]);
+	});
 });
+
 //----------------------------------------------------------------------------//
 
 

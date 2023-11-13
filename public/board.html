@@ -204,29 +204,33 @@
 
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
-    // ctx.lineCap = "butt";
-    // ctx.lineJoin = "round";
 
 
     let mouseDown = false;
     let mouseX = 0;
     let mouseY = 0;
 
-    let lines = [];
-    let currentLine = [];
+    // let lines = [];
+    // let currentLine = [];
+
+    let board = {
+        public: null,
+        lines: {},
+    };
+
+    let currentLine = {};
+    let currentLineId = null;
 
     let redraw = true;
 
-    function mouseInfo() {
-        let size = document.getElementById("size").value;
-        let color = document.getElementById("color").value;
-        return {
-            mouseX,
-            mouseY,
-            size,
-            color,
+    function createId() {
+        const id = Math.random().toString(36).substring(2, 7).toUpperCase();
+        if (board.lines[id]) {
+            return createId();
         }
+        return id;
     }
+
 
     canvas.addEventListener("mousedown", (e) => {
         mouseDown = true;
@@ -235,13 +239,19 @@
         mouseX = (e.clientX - rect.left) / canvas.width;
         mouseY = (e.clientY - rect.top) / canvas.height;
 
-        currentLine = [mouseInfo()];
-        redraw = true;
+        currentLineId = createId();
+        currentLine = {
+            color: document.getElementById("color").value,
+            size: document.getElementById("size").value,
+            points: [{
+                mouseX,
+                mouseY,
+            }],
+        };
+        socket.emit('lineUpdate', { boardId, lineId: currentLineId, line: currentLine });
     });
     canvas.addEventListener("mouseup", (e) => {
         mouseDown = false;
-        lines.push(currentLine);
-        console.log(lines);
     });
     canvas.addEventListener("mousemove", (e) => {
         if (mouseDown) {
@@ -249,9 +259,19 @@
             mouseX = (e.clientX - rect.left) / canvas.width;
             mouseY = (e.clientY - rect.top) / canvas.height;
 
-            currentLine.push(mouseInfo());
-            redraw = true;
+            currentLine.points.push({
+                mouseX,
+                mouseY,
+            });
+
+            socket.emit('lineUpdate', { boardId, lineId: currentLineId, line: currentLine });
+
         }
+    });
+
+    socket.on(`board-${boardId}`, (newBoard) => {
+        redraw = true;
+        board = newBoard;
     });
 
 
@@ -304,22 +324,22 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 
-            const linesToDraw = [...lines, currentLine];
-            for (let i = 0; i < linesToDraw.length; i++) {
-                ctx.beginPath();
-                for (let j = 0; j < linesToDraw[i].length; j++) {
-                    const { mouseX, mouseY, size, color } = linesToDraw[i][j];   
-                    if (j == 0) {
-                        ctx.moveTo(mouseX * canvas.width, mouseY * canvas.height);
-                        ctx.lineWidth = Math.max(size * canvas.width / 2500, 2);
-                        ctx.strokeStyle = color;
-                    }
+            for (const lineId in board.lines) {
+                const line = board.lines[lineId];
 
+                ctx.beginPath();
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = Math.max(line.size * canvas.width / 5000, 1);
+                
+                ctx.moveTo(line.points[0].mouseX * canvas.width, line.points[0].mouseY * canvas.height);
+                for (let i = 0; i < line.points.length; i++) {
+                    const { mouseX, mouseY } = line.points[i];
                     ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
-                    ctx.ci
                 }
                 ctx.stroke();
             }
+
+
             redraw = false;
         }
 

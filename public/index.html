@@ -5,15 +5,45 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer Pong</title>
+    <title>MultiBoard</title>
 
+    <!-- Pico.css (Classless version) -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.classless.min.css"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
 
-	<script defer src="js/classes.js"></script>
-	<script defer src="js/game.js"></script>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
 </head>
 
+<script>
+
+</script>
+
 <body>
-	<h1>PONG!</h1>
+    <header class="zeroBottomPadding">
+        <hgroup>
+            <h1>MultiBoard</h1>
+            <h2>Easy to use real-time multi-user online whiteboard</h2>
+        </hgroup>
+    </header>
 
+	<main>
+        <button>Create a board</button>
 
+        <article>
+            <h2>Join a private board</h2>
+            <form>
+                <label for="boardId">Board ID</label>
+                <input type="text" placeholder="Board ID" name="boardId" id="boardId" />
+                <button disabled>Join</button>
+            </form>
+        </article>
+
+        <article>
+            <h2>Join a public board</h2>
+            <ul id="boards"></ul>
+        </article>
+    </main>
 </body>

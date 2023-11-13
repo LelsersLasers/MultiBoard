@@ -1,13 +1,99 @@
-const express = require('express')
-const app = express()
-const port = 3000
+const express = require('express');
+const app = express();
 
-app.use(express.static('public'))
+const bodyParser = require('body-parser');
+const urlencodedParser = bodyParser.urlencoded({ extended: false });
+
+// socket.io setup
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server, {
+	pingInterval: 2000,
+	pingTimeout: 5000,
+	cors: {
+		origin: '*',
+		methods: ['GET', 'POST'],
+	}
+});
+
+const PORT = 3000;
+
+app.use(express.static('public'));
+
+
+
+//----------------------------------------------------------------------------//
+const boards = {};
+
+function createId() {
+	const id = Math.random().toString(36).substring(2, 7).toUpperCase();
+	console.log(id);
+	if (boards[id]) {
+		return createId();
+	}
+	return id;
+}
+
+function createBoard(public) {
+	const id = createId();
+	boards[id] = {
+		public,
+	};
+
+	if (public) {
+		emitPublicBoards();
+	}
+
+	return id;
+}
+//----------------------------------------------------------------------------//
+
+
+//----------------------------------------------------------------------------//
+app.post('/create', urlencodedParser, (req, res) => {
+	const public = req.body.public;
+
+	const board_id = createBoard(public);
+
+	res.writeHead(302, { Location: `/board/${board_id}` });
+	res.end();
+});
+
+app.get('/board/:id', (req, res) => {
+	const id = req.params.id;
+	if (!boards[id]) {
+		res.writeHead(302, { Location: '/' });
+		res.end();
+		return;
+	}
+
+	res.sendFile(__dirname + '/public/board.html');
+});
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html')
+	res.sendFile(__dirname + '/public/index.html');
 })
 
-app.listen(port, () => {
-  console.log(`Node backend listening on port ${port}`)
-})
+app.use((req, res) => {
+	res.writeHead(302, { Location: '/' });
+	res.end();
+});
+//----------------------------------------------------------------------------//
+
+
+//----------------------------------------------------------------------------//
+function emitPublicBoards() {
+	io.emit('publicBoards', Object.keys(boards).filter((id) => boards[id].public));
+}
+
+
+io.on('connection', (socket) => {
+	emitPublicBoards();
+});
+//----------------------------------------------------------------------------//
+
+
+server.listen(PORT, () => {
+	console.log(`Node backend listening on port ${PORT}`);
+});

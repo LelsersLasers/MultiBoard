@@ -203,9 +203,18 @@
 
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+
     ctx.fillStyle = "#ECEFF4";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+
+    let mouseDown = false;
+
+    canvas.addEventListener("mousedown", e => mouseDown = true);
+    canvas.addEventListener("mouseup", e => mouseDown = false);
 
 
     function resize() {
@@ -223,7 +232,6 @@
         sidebarEle.style.width = sidebarW + "px";
     }
 
-
     function saveAsPng() {
         const link = document.createElement("a");
         link.download = `${boardId}.png`;
@@ -231,6 +239,14 @@
         link.click();
     }
 
+    
+    function loop() {
+        console.log(mouseDown);
+
+        window.requestAnimationFrame(loop);
+    }
+
 
     resize();
+    window.requestAnimationFrame(loop);
 </script>

@@ -185,7 +185,7 @@
             <hr />
 
             <button id="save" onclick="saveAsPng()">Save as PNG</button>
-            <button id="clear">Clear</button>
+            <button id="clear" onclick="clearBoard()">Clear</button>
 
         </div>
     </div>
@@ -268,6 +268,10 @@
 
         }
     });
+
+    function clearBoard() {
+        socket.emit("clear", boardId);
+    }
 
     socket.on(`board-${boardId}`, (newBoard) => {
         redraw = true;

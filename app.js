@@ -107,7 +107,6 @@ io.on('connection', (socket) => {
 	}
 
 	socket.on('lineUpdate', ({ boardId, lineId, line }) => {
-		console.log(`lineUpdate: ${boardId} ${lineId} ${line}`)
 		if (!boards[boardId]) {
 			return;
 		}
@@ -115,6 +114,11 @@ io.on('connection', (socket) => {
 		boards[id].lines[lineId] = line;
 
 		io.emit(`board-${id}`, boards[id]);
+	});
+
+	socket.on('clear', (boardId) => {
+		boards[boardId].lines = {};
+		io.emit(`board-${boardId}`, boards[boardId]);
 	});
 });
 

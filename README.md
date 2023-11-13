@@ -1,3 +1,3 @@
-# Multiplayer Pong
+# MultiBoard
 
-Multiplayer Pong with socket.io
+Easy to use real-time multi-user online whiteboard

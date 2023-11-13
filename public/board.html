@@ -168,7 +168,7 @@
             <hr />
 
             <label for="color">Color: </label>
-            <input type="color" id="color" name="color" value="#ECEFF4" />
+            <input type="color" id="color" name="color" value="#5E81AC" />
 
             <br class="spacing" />
 
@@ -178,8 +178,8 @@
             <br class="spacing" />
 
             <label for="size">Size: </label>
-            <output>10</output>
-            <input type="range" id="size" name="size" min="1" max="50" step="1" value="5" oninput="this.previousElementSibling.value = this.value" />
+            <output>25</output>
+            <input type="range" id="size" name="size" min="1" max="100" step="1" value="25" oninput="this.previousElementSibling.value = this.value" />
 
 
             <hr />
@@ -204,18 +204,55 @@
 
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-
-
-    ctx.fillStyle = "#ECEFF4";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // ctx.lineCap = "butt";
+    // ctx.lineJoin = "round";
 
 
     let mouseDown = false;
+    let mouseX = 0;
+    let mouseY = 0;
 
-    canvas.addEventListener("mousedown", e => mouseDown = true);
-    canvas.addEventListener("mouseup", e => mouseDown = false);
+    let lines = [];
+    let currentLine = [];
+
+    let redraw = true;
+
+    function mouseInfo() {
+        let size = document.getElementById("size").value;
+        let color = document.getElementById("color").value;
+        return {
+            mouseX,
+            mouseY,
+            size,
+            color,
+        }
+    }
+
+    canvas.addEventListener("mousedown", (e) => {
+        mouseDown = true;
+
+        const rect = canvas.getBoundingClientRect();
+        mouseX = (e.clientX - rect.left) / canvas.width;
+        mouseY = (e.clientY - rect.top) / canvas.height;
+
+        currentLine = [mouseInfo()];
+        redraw = true;
+    });
+    canvas.addEventListener("mouseup", (e) => {
+        mouseDown = false;
+        lines.push(currentLine);
+        console.log(lines);
+    });
+    canvas.addEventListener("mousemove", (e) => {
+        if (mouseDown) {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = (e.clientX - rect.left) / canvas.width;
+            mouseY = (e.clientY - rect.top) / canvas.height;
+
+            currentLine.push(mouseInfo());
+            redraw = true;
+        }
+    });
 
 
     function resize() {
@@ -223,14 +260,22 @@
         const maxW = window.innerWidth * (3 / 4) - 3 * EM - 8;
         const maxH = window.innerHeight - 2 * EM - 8;
 
-        const w = Math.min(maxW, maxH);
+        const ratio = 4 / 3;
+
+        const w = Math.min(maxW, maxH * ratio);
+        const h = Math.min(maxH, maxW / ratio);
         
         canvas.style.width = w + "px";
-        canvas.style.height = w + "px";
+        canvas.style.height = h + "px";
+        
+        canvas.width = w;
+        canvas.height = h;
 
         const sidebarW = (window.innerWidth * w - 3 * EM);
         const sidebarEle = document.getElementById("sidebar");
         sidebarEle.style.width = sidebarW + "px";
+
+        redraw = true;
     }
 
     function saveAsPng() {
@@ -254,7 +299,29 @@
 
     
     function loop() {
-        console.log(mouseDown);
+        if (redraw) {
+            ctx.fillStyle = "#ECEFF4";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
+            const linesToDraw = [...lines, currentLine];
+            for (let i = 0; i < linesToDraw.length; i++) {
+                ctx.beginPath();
+                for (let j = 0; j < linesToDraw[i].length; j++) {
+                    const { mouseX, mouseY, size, color } = linesToDraw[i][j];   
+                    if (j == 0) {
+                        ctx.moveTo(mouseX * canvas.width, mouseY * canvas.height);
+                        ctx.lineWidth = Math.max(size * canvas.width / 2500, 2);
+                        ctx.strokeStyle = color;
+                    }
+
+                    ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
+                    ctx.ci
+                }
+                ctx.stroke();
+            }
+            redraw = false;
+        }
 
         window.requestAnimationFrame(loop);
     }

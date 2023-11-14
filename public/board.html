@@ -289,7 +289,7 @@
         socket.emit("clear", boardId);
     }
 
-    socket.on(`board-${boardId}`, (newBoard) => {
+    socket.on(`board`, (newBoard) => {
         board = newBoard;
     });
 

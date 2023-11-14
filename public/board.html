@@ -183,6 +183,9 @@
             <output>25</output>
             <input type="range" id="size" name="size" min="1" max="200" step="1" value="25" oninput="this.previousElementSibling.value = this.value" />
 
+            <label for="renderOptimization">Render optimization: </label>
+            <output>3</output>
+            <input type="range" id="renderOptimization" name="size" min="1" max="10" step="1" value="3" oninput="this.previousElementSibling.value = this.value" />
 
             <hr />
 
@@ -247,7 +250,7 @@
         const eraser = document.getElementById("erase").checked;
         currentLine = {
             color: !eraser ? document.getElementById("color").value : BACKGROUND_COLOR,
-            size: document.getElementById("size").value,
+            size: parseInt(document.getElementById("size").value),
             points: [{
                 mouseX,
                 mouseY,
@@ -339,7 +342,7 @@
         ctx.fillStyle = BACKGROUND_COLOR;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-
+        const renderOptimization = parseInt(document.getElementById("renderOptimization").value);
         for (const lineId in board.lines) {
             const line = board.lines[lineId];
 
@@ -357,10 +360,14 @@
             
             ctx.beginPath();
             ctx.moveTo(startX, startY);
-            for (let i = 0; i < line.points.length; i++) {
+
+            for (let i = 0; i < line.points.length; i += renderOptimization) {
                 const { mouseX, mouseY } = line.points[i];
                 ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
             }
+            const { mouseX, mouseY } = line.points[line.points.length - 1];
+            ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
+
             ctx.stroke();
 
             const endX = line.points[line.points.length - 1].mouseX * canvas.width;
@@ -395,7 +402,7 @@
         }
 
 
-        const lineSize = document.getElementById("size").value;
+        const lineSize = parseInt(document.getElementById("size").value);
         const radius = Math.max(lineSize * canvas.width / 5000, 1) / 2;
 
         ctx.strokeStyle = BACKGROUND_COLOR;

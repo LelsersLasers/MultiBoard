@@ -104,7 +104,15 @@
                 </td>
                 <td>
                     <form id="join" action="/join" method="post" class="zeroBottomMargin">
-                        <input type="text" class="zeroPadding zeroBottomMargin" placeholder="Board ID" name="id" id="id" autocomplete="off" />
+                        <input
+                            type="text"
+                            autocomplete="off"
+                            placeholder="Board ID"
+                            name="id" id="id"
+                            class="zeroPadding zeroBottomMargin" 
+                            oninput="this.value = this.value.toUpperCase()"
+                            minlength="5" maxlength="5"
+                        />
                     </form>
                 </td>
                 <td>

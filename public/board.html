@@ -222,18 +222,15 @@
     let mouseX = 0;
     let mouseY = 0;
 
-    let board = {
-        public: null,
-        lines: {},
-        mice: {},
-    };
+    let lines =  {};
+    let mice = {};
 
     let currentLine = {};
     let currentLineId = null;
 
     function createId() {
         const id = Math.random().toString(36).substring(2, 7).toUpperCase();
-        if (board.lines[id]) {
+        if (lines[id]) {
             return createId();
         }
         return id;
@@ -289,8 +286,11 @@
         socket.emit("clear", boardId);
     }
 
-    socket.on(`board`, (newBoard) => {
-        board = newBoard;
+    socket.on(`lines`, (newLines) => {
+        lines = newLines;
+    });
+    socket.on(`mice`, (newMice) => {
+        mice = newMice;
     });
 
 
@@ -344,8 +344,8 @@
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         const renderOptimization = parseInt(document.getElementById("renderOptimization").value);
-        for (const lineId in board.lines) {
-            const line = board.lines[lineId];
+        for (const lineId in lines) {
+            const line = lines[lineId];
 
             ctx.strokeStyle = line.color;
             ctx.fillStyle = line.color;
@@ -380,11 +380,12 @@
         }
 
         const now = Date.now();
-        for (const socketId in board.mice) {
+        for (const socketId in mice) {
             if (socketId == socket.id) continue;
 
-            const mouse = board.mice[socketId];
+            const mouse = mice[socketId];
             if (mouse.timestamp + 5000 < now) {
+                socket.emit("inputDelete", { boardId, socketId });
                 continue;
             }
 

@@ -118,9 +118,8 @@ io.on('connection', (socket) => {
 		}
 
 		socket.join(`room-${boardId}`);
-		socket.emit(`board`, boards[boardId]);
+		socket.emit(`lines`, boards[boardId].lines);
 	});
-
 	socket.on('lineUpdate', ({ boardId, lineId, line }) => {
 		if (!boards[boardId]) {
 			return;
@@ -130,10 +129,28 @@ io.on('connection', (socket) => {
 
 		boards[boardId].timestamp = Date.now();
 
-		io.to(`room-${boardId}`).emit(`board`, boards[boardId]);
+		io.to(`room-${boardId}`).emit(`lines`, boards[boardId].lines);
+	});
+	socket.on('clear', (boardId) => {
+		boards[boardId].lines = {};
+
+		boards[boardId].timestamp = Date.now();
+		
+		io.to(`room-${boardId}`).emit(`lines`, boards[boardId].lines);
 	});
 
 
+	socket.on('inputDelete', ({ boardId, socketId }) => {
+		if (!boards[boardId] || !boards[boardId].mice[socketId]) {
+			return;
+		}
+
+		delete boards[boardId].mice[socketId];
+
+		boards[boardId].timestamp = Date.now();
+
+		io.to(`room-${boardId}`).emit(`mice`, boards[boardId].mice);
+	});
 	socket.on('inputMove', ({ boardId, mouseX, mouseY }) => {
 		if (!boards[boardId]) {
 			return;
@@ -152,15 +169,7 @@ io.on('connection', (socket) => {
 
 		boards[boardId].timestamp = timestamp;
 
-		io.to(`room-${boardId}`).emit(`board`, boards[boardId]);
-	});
-
-	socket.on('clear', (boardId) => {
-		boards[boardId].lines = {};
-
-		boards[boardId].timestamp = Date.now();
-		
-		io.to(`room-${boardId}`).emit(`board`, boards[boardId]);
+		io.to(`room-${boardId}`).emit(`mice`, boards[boardId].mice);
 	});
 });
 

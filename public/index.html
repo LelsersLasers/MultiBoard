@@ -52,7 +52,7 @@
 </head>
 
 <script>
-    const socket = io("http://localhost:3000");
+    const socket = io();
 
     socket.on("publicBoards", (boards) => {
         const boardsList = document.getElementById("publicBoards");

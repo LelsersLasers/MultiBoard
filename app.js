@@ -45,7 +45,7 @@ function createBoard(public) {
 	};
 
 	if (public) {
-		emitPublicBoards();
+		io.emit('publicBoards', Object.keys(boards).filter((id) => boards[id].public));
 	}
 
 	return id;
@@ -106,16 +106,18 @@ app.use((req, res) => {
 
 
 //----------------------------------------------------------------------------//
-function emitPublicBoards() {
-	io.emit('publicBoards', Object.keys(boards).filter((id) => boards[id].public));
-}
-
-
 io.on('connection', (socket) => {
-	emitPublicBoards();
-	for (id in boards) {
-		socket.emit(`board-${id}`, boards[id]);
-	}
+	socket.on('requestPublicBoards', () => {
+		socket.emit('publicBoards', Object.keys(boards).filter((id) => boards[id].public));
+	});
+
+	socket.on('requestBoard', (boardId) => {
+		if (!boards[boardId]) {
+			return;
+		}
+
+		socket.emit(`board-${boardId}`, boards[boardId]);
+	});
 
 	socket.on('lineUpdate', ({ boardId, lineId, line }) => {
 		if (!boards[boardId]) {
@@ -148,13 +150,13 @@ io.on('connection', (socket) => {
 
 		boards[boardId].timestamp = timestamp;
 
-		io.emit(`board-${boardId}`, boards[id]);
+		io.emit(`board-${boardId}`, boards[boardId]);
 	});
 
 	socket.on('clear', (boardId) => {
 		boards[boardId].lines = {};
 
-		boards[id].timestamp = Date.now();
+		boards[boardId].timestamp = Date.now();
 		
 		io.emit(`board-${boardId}`, boards[boardId]);
 	});

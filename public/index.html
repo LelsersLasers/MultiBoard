@@ -54,6 +54,8 @@
 <script>
     const socket = io();
 
+    socket.emit("requestPublicBoards");
+
     socket.on("publicBoards", (boards) => {
         const boardsList = document.getElementById("publicBoards");
         boardsList.innerHTML = "";

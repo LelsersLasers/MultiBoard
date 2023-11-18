@@ -217,6 +217,9 @@
     const ctx = canvas.getContext("2d");
     const BACKGROUND_COLOR = "#ECEFF4";
 
+    const INPUT_TIMEOUT = 5 * 1000;
+    const INPUT_DELETE_TIMEOUT = 5 * 60 * 1000;
+
 
     let mouseDown = false;
     let mouseX = 0;
@@ -227,6 +230,8 @@
 
     let currentLine = {};
     let currentLineId = null;
+
+    let redraw = true;
 
     function createId() {
         const id = Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -272,6 +277,7 @@
         }
 
         socket.emit('inputMove', { boardId, mouseX, mouseY });
+        redraw = true;
     }
 
     canvas.addEventListener("touchstart", (e) => inputStart(e.touches[0].clientX, e.touches[0].clientY));
@@ -288,15 +294,19 @@
 
     socket.on(`lines`, (newLines) => {
         lines = newLines;
+        redraw = true;
     });
     socket.on(`lineCreate`, ({ lineId, line }) => {
         lines[lineId] = line;
+        redraw = true;
     });
     socket.on(`lineUpdate`, ({ lineId, pt }) => {
         lines[lineId].points.push(pt);
+        redraw = true;
     });
     socket.on(`mice`, (newMice) => {
         mice = newMice;
+        redraw = true;
     });
 
 
@@ -319,6 +329,8 @@
         const sidebarW = (window.innerWidth * w - 3 * EM);
         const sidebarEle = document.getElementById("sidebar");
         sidebarEle.style.width = sidebarW + "px";
+
+        redraw = true;
     }
 
     function back() {
@@ -345,53 +357,62 @@
     }
 
     
+    //--------------------------------------------------------------------------------------------//
     function loop() {
-        ctx.fillStyle = BACKGROUND_COLOR;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        let redraw_queue = false;
+        //----------------------------------------------------------------------------------------//
+        if (redraw) {
+            ctx.fillStyle = BACKGROUND_COLOR;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const renderOptimization = parseInt(document.getElementById("renderOptimization").value);
-        for (const lineId in lines) {
-            const line = lines[lineId];
+            const renderOptimization = parseInt(document.getElementById("renderOptimization").value);
+            for (const lineId in lines) {
+                const line = lines[lineId];
 
-            ctx.strokeStyle = line.color;
-            ctx.fillStyle = line.color;
-            ctx.lineWidth = Math.max(line.size * canvas.width / 5000, 1);
+                ctx.strokeStyle = line.color;
+                ctx.fillStyle = line.color;
+                ctx.lineWidth = Math.max(line.size * canvas.width / 5000, 1);
 
-            const startX = line.points[0].mouseX * canvas.width;
-            const startY = line.points[0].mouseY * canvas.height;
+                const startX = line.points[0].mouseX * canvas.width;
+                const startY = line.points[0].mouseY * canvas.height;
 
-            ctx.beginPath();
-            ctx.ellipse(startX, startY, ctx.lineWidth / 2, ctx.lineWidth / 2, 0, 0, 2 * Math.PI);
-            ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(startX, startY, ctx.lineWidth / 2, ctx.lineWidth / 2, 0, 0, 2 * Math.PI);
+                ctx.fill();
 
-            
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
 
-            for (let i = 0; i < line.points.length; i += renderOptimization) {
-                const { mouseX, mouseY } = line.points[i];
+                for (let i = 0; i < line.points.length; i += renderOptimization) {
+                    const { mouseX, mouseY } = line.points[i];
+                    ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
+                }
+                const { mouseX, mouseY } = line.points[line.points.length - 1];
                 ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
+
+                ctx.stroke();
+
+                const endX = line.points[line.points.length - 1].mouseX * canvas.width;
+                const endY = line.points[line.points.length - 1].mouseY * canvas.height;
+
+                ctx.beginPath();
+                ctx.ellipse(endX, endY, ctx.lineWidth / 2, ctx.lineWidth / 2, 0, 0, 2 * Math.PI);
+                ctx.fill();
             }
-            const { mouseX, mouseY } = line.points[line.points.length - 1];
-            ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
-
-            ctx.stroke();
-
-            const endX = line.points[line.points.length - 1].mouseX * canvas.width;
-            const endY = line.points[line.points.length - 1].mouseY * canvas.height;
-
-            ctx.beginPath();
-            ctx.ellipse(endX, endY, ctx.lineWidth / 2, ctx.lineWidth / 2, 0, 0, 2 * Math.PI);
-            ctx.fill();
         }
 
+        //----------------------------------------------------------------------------------------//
         const now = Date.now();
         for (const socketId in mice) {
             if (socketId == socket.id) continue;
 
             const mouse = mice[socketId];
-            if (mouse.timestamp + 5000 < now) {
-                socket.emit("inputDelete", { boardId, socketId });
+            if (mouse.timestamp + INPUT_TIMEOUT < now) {
+                if (mouse.timestamp + INPUT_DELETE_TIMEOUT < now) {
+                    socket.emit("inputDelete", { boardId, socketId });
+                }
+                redraw_queue = true;
                 continue;
             }
 
@@ -408,29 +429,36 @@
             ctx.ellipse(mouse.mouseX * canvas.width, mouse.mouseY * canvas.height, 4, 4, 0, 0, 2 * Math.PI);
             ctx.stroke();
         }
+        //----------------------------------------------------------------------------------------//
 
+        //----------------------------------------------------------------------------------------//
+        if (redraw) {
+            const lineSize = parseInt(document.getElementById("size").value);
+            const radius = Math.max(lineSize * canvas.width / 5000, 1) / 2;
 
-        const lineSize = parseInt(document.getElementById("size").value);
-        const radius = Math.max(lineSize * canvas.width / 5000, 1) / 2;
+            ctx.strokeStyle = BACKGROUND_COLOR;
+            ctx.lineWidth = 3;
 
-        ctx.strokeStyle = BACKGROUND_COLOR;
-        ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.ellipse(mouseX * canvas.width, mouseY * canvas.height, radius, radius, 0, 0, 2 * Math.PI);
+            ctx.stroke();
 
-        ctx.beginPath();
-        ctx.ellipse(mouseX * canvas.width, mouseY * canvas.height, radius, radius, 0, 0, 2 * Math.PI);
-        ctx.stroke();
+            2E3440
+            ctx.strokeStyle = "#2E3440";
+            ctx.lineWidth = 1;
 
-        2E3440
-        ctx.strokeStyle = "#2E3440";
-        ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.ellipse(mouseX * canvas.width, mouseY * canvas.height, radius, radius, 0, 0, 2 * Math.PI);
+            ctx.stroke();
 
-        ctx.beginPath();
-        ctx.ellipse(mouseX * canvas.width, mouseY * canvas.height, radius, radius, 0, 0, 2 * Math.PI);
-        ctx.stroke();
+            redraw = false;
+        }
+        //----------------------------------------------------------------------------------------//
 
-
+        if (redraw_queue) redraw = true;
         window.requestAnimationFrame(loop);
     }
+    //--------------------------------------------------------------------------------------------//
 
 
     resize();

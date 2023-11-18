@@ -121,7 +121,7 @@ io.on('connection', (socket) => {
 		socket.emit(`lines`, boards[boardId].lines);
         socket.emit(`mice`, boards[boardId].mice);
 	});
-	socket.on('lineUpdate', ({ boardId, lineId, line }) => {
+	socket.on('createLine', ({ boardId, lineId, line }) => {
 		if (!boards[boardId]) {
 			return;
 		}
@@ -130,7 +130,18 @@ io.on('connection', (socket) => {
 
 		boards[boardId].timestamp = Date.now();
 
-        io.to(`room-${boardId}`).emit(`line`, ({ lineId, line }));
+        io.to(`room-${boardId}`).emit(`lineCreate`, ({ lineId, line }));
+	});
+    socket.on('updateLine', ({ boardId, lineId, pt }) => {
+		if (!boards[boardId] || !boards[boardId].lines[lineId]) {
+			return;
+		}
+
+        boards[boardId].lines[lineId].points.push(pt);
+
+		boards[boardId].timestamp = Date.now();
+
+        io.to(`room-${boardId}`).emit(`lineUpdate`, ({ lineId, pt }));
 	});
 	socket.on('clear', (boardId) => {
 		boards[boardId].lines = {};

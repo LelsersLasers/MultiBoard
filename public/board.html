@@ -254,7 +254,7 @@
                 mouseY,
             }],
         };
-        socket.emit('lineUpdate', { boardId, lineId: currentLineId, line: currentLine });
+        socket.emit('createLine', { boardId, lineId: currentLineId, line: currentLine });
     }
 
     function inputMove(clientX, clientY) {
@@ -263,12 +263,12 @@
         mouseY = (clientY - rect.top) / canvas.height;
 
         if (mouseDown) {
-            currentLine.points.push({
+            const pt = {
                 mouseX,
                 mouseY,
-            });
+            };
 
-            socket.emit('lineUpdate', { boardId, lineId: currentLineId, line: currentLine });
+            socket.emit('updateLine', { boardId, lineId: currentLineId, pt });
         }
 
         socket.emit('inputMove', { boardId, mouseX, mouseY });
@@ -289,8 +289,11 @@
     socket.on(`lines`, (newLines) => {
         lines = newLines;
     });
-    socket.on(`line`, ({ lineId, line }) => {
+    socket.on(`lineCreate`, ({ lineId, line }) => {
         lines[lineId] = line;
+    });
+    socket.on(`lineUpdate`, ({ lineId, pt }) => {
+        lines[lineId].points.push(pt);
     });
     socket.on(`mice`, (newMice) => {
         mice = newMice;

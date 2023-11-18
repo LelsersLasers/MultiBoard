@@ -289,6 +289,9 @@
     socket.on(`lines`, (newLines) => {
         lines = newLines;
     });
+    socket.on(`line`, ({ lineId, line }) => {
+        lines[lineId] = line;
+    });
     socket.on(`mice`, (newMice) => {
         mice = newMice;
     });

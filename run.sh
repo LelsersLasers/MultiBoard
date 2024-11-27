@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd /home/millankumar/code/Multiboard
-node i
+cd /home/millankumar/code/MultiBoard
+npm i
 node app.js

@@ -150,86 +150,13 @@
             background-color: #e5e9f0;
         }
 
-
-
-        /* .spacing {
-            content: "";
-            display: block;
-            margin: 0.3em;
+        #fps {
+            position: fixed;
+            top: 0.2em;
+            left: 0.2em;
+            color: #2E3440;
+            font-size: 0.5em;
         }
-        hr {
-            background-color: #ECEFF4;
-            border: none;
-            height: 1px;
-            border-radius: 10px;
-        }
-
-        label {
-            color: #ECEFF4;
-            height: 1.2em;
-            font-size: 1em;
-            cursor: pointer;
-        }
-
-        input {
-            height: 1.2em;
-            font-size: 1em;
-            padding: 0.8em 0.5em;
-            box-sizing: border-box;
-            background-color: #4C566A;
-            color: #ECEFF4;
-            border-radius: 7px;
-            border: none;
-            outline: none !important;
-        }
-        input:focus {
-            outline: 2px solid #EBCB8B !important;
-        }
-        input[type="color"] {
-            width: default;
-            padding: 0.15em;
-            height: 1.8em;
-            transform: translate(0, 0.2em);
-        }
-        input[type="checkbox"] {
-            width: 0.9em;
-            height: 1.1em;
-            padding: 0px;
-            margin: 0px;
-            margin-bottom: 0.15em;
-            vertical-align: middle;
-            position: relative;
-            color: #ECEFF4;
-            outline: none !important;
-            cursor: pointer;
-        }
-        input[type="range"] {
-            width: 100%;
-            color: #ECEFF4;
-            outline: none !important;
-            border: none !important;
-            padding: 0;
-            margin: 0;
-        }
-
-        button {
-            font-size: 1em;
-            border: none;
-            padding: 0.3em 2em;
-            background-color: #5E81AC;
-            color: #ECEFF4;
-            cursor: pointer;
-            border-radius: 7px;
-            width: 100%;
-            margin-bottom: 0.5em;
-            outline: none;
-        }
-        button:focus {
-            outline: 2px solid #EBCB8B;
-        }
-        .smallInput {
-            width: 3em;
-        } */
     </style>
 </head>
 
@@ -271,6 +198,8 @@
 
         <button id="clear" onclick="clearBoard()">Clear</button>
     </div>
+
+    <span id="fps"></span>
 </body>
 
 <script>
@@ -297,6 +226,9 @@
 
     let eraser = false;
     let eraserWidth = 40;
+
+    let cameraPos = { x: 0, y: 0 };
+    let cameraZoom = 1;
 
 
     let mouseDown = false;
@@ -512,6 +444,16 @@
         }, 3000);
     }
 
+    //--------------------------------------------------------------------------------------------//
+    let t0 = performance.now();
+    let fps = 0;
+
+    function setFpsText() {
+        document.getElementById("fps").innerHTML = `${fps} FPS`;
+    }
+    setInterval(setFpsText, 100);
+    //--------------------------------------------------------------------------------------------//
+
     
     //--------------------------------------------------------------------------------------------//
     function loop() {
@@ -608,6 +550,12 @@
 
             redraw = false;
         }
+        //----------------------------------------------------------------------------------------//
+
+        //----------------------------------------------------------------------------------------//
+        const t1 = performance.now();
+        fps = Math.round(1000 / (t1 - t0));
+        t0 = t1;
         //----------------------------------------------------------------------------------------//
 
         if (redraw_queue) redraw = true;

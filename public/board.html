@@ -555,7 +555,7 @@
 
                 ctx.strokeStyle = line.color;
                 ctx.fillStyle = line.color;
-                ctx.lineWidth = Math.max(line.size * wMod, 1);
+                ctx.lineWidth = Math.max(line.size * wMod * cameraZoom, 1);
 
                 const [startX, startY] = drawPos(line.points[0].mouseX, line.points[0].mouseY);
 
@@ -617,7 +617,7 @@
 
         //----------------------------------------------------------------------------------------//
         if (redraw) {
-            const lineSize = parseInt(document.getElementById("size").value);
+            const lineSize = parseInt(document.getElementById("size").value) * cameraZoom;
             const radius = Math.max(lineSize * wMod, 1) / 2;
 
             ctx.strokeStyle = BACKGROUND_COLOR;

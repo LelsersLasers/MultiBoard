@@ -262,8 +262,8 @@
 
     function drawPos(x, y) {
         return [
-            (x + cameraPos.x) * cameraZoom,
-            (y + cameraPos.y) * cameraZoom,
+            (x * cameraZoom) + cameraPos.x,
+            (y * cameraZoom) + cameraPos.y,
         ];
     }
 
@@ -311,8 +311,8 @@
             const dx = x - mouseX;
             const dy = y - mouseY;
 
-            cameraPos.x += dx / cameraZoom;
-            cameraPos.y += dy / cameraZoom;
+            cameraPos.x += dx;
+            cameraPos.y += dy;
 
             mouseX = x;
             mouseY = y;
@@ -332,7 +332,7 @@
 
     function scrollWheel(e) {
         const delta = Math.max(-1, Math.min(1, e.deltaY));
-        cameraZoom -= delta * 0.1;
+        cameraZoom -= delta * cameraZoom * 0.2;
         cameraZoom = Math.max(0.1, cameraZoom);
         cameraZoom = Math.min(10, cameraZoom);
     }
@@ -437,6 +437,7 @@
                 centered = true;
                 cameraPos.x = canvas.width / 2;
                 cameraPos.y = canvas.height / 2;
+                cameraZoom = 1;
                 break;
             }
         }

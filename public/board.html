@@ -227,7 +227,8 @@
     let eraser = false;
     let eraserWidth = 40;
 
-    let cameraPos = { x: 0, y: 0 };
+    let cameraPos = { x: null, y: null };
+    let centered = true;
     let cameraZoom = 1;
 
 
@@ -260,12 +261,14 @@
     }
 
     function drawPos(x, y) {
-        return [x - cameraPos.x, y - cameraPos.y];
+        return [
+            (x + cameraPos.x) * cameraZoom,
+            (y + cameraPos.y) * cameraZoom,
+        ];
     }
 
 
     function mouseDown(e, clientX, clientY) {
-        console.log(e.button);
         if (e.button == 2 || e.button == 1) {
             dragging = true;  
         } else if (e.button == 0) {
@@ -277,8 +280,8 @@
                 color: !eraser ? penColor : BACKGROUND_COLOR,
                 size: !eraser ? penWidth : eraserWidth,
                 points: [{
-                    mouseX: mouseX + cameraPos.x,
-                    mouseY: mouseY + cameraPos.y,
+                    mouseX: mouseX - cameraPos.x,
+                    mouseY: mouseY - cameraPos.y,
                 }],
             };
             socket.emit('createLine', { boardId, lineId: currentLineId, line: currentLine });
@@ -298,8 +301,8 @@
             [mouseX, mouseY] = mousePos(clientX, clientY);
 
             const pt = {
-                mouseX: mouseX + cameraPos.x,
-                mouseY: mouseY + cameraPos.y,
+                mouseX: mouseX - cameraPos.x,
+                mouseY: mouseY - cameraPos.y,
             };
 
             socket.emit('updateLine', { boardId, lineId: currentLineId, pt });
@@ -308,26 +311,28 @@
             const dx = x - mouseX;
             const dy = y - mouseY;
 
-            cameraPos.x -= dx / cameraZoom;
-            cameraPos.y -= dy / cameraZoom;
+            cameraPos.x += dx / cameraZoom;
+            cameraPos.y += dy / cameraZoom;
 
             mouseX = x;
             mouseY = y;
+
+            centered = false;
         } else {
             [mouseX, mouseY] = mousePos(clientX, clientY);
         }
 
         socket.emit('inputMove', {
             boardId,
-            mouseX: mouseX + cameraPos.x,
-            mouseY: mouseY + cameraPos.y,
+            mouseX: mouseX - cameraPos.x,
+            mouseY: mouseY - cameraPos.y,
         });
         redraw = true;
     }
 
     function scrollWheel(e) {
         const delta = Math.max(-1, Math.min(1, e.deltaY));
-        cameraZoom += delta * 0.1;
+        cameraZoom -= delta * 0.1;
         cameraZoom = Math.max(0.1, cameraZoom);
         cameraZoom = Math.min(10, cameraZoom);
     }
@@ -420,6 +425,23 @@
         }
     }
 
+    function keydown(e) {
+        const key = e.key.toLowerCase();
+        switch (key) {
+            case "1": colorClick("color1"); break;
+            case "2": colorClick("color2"); break;
+            case "3": colorClick("color3"); break;
+            case "4": colorClick("color4"); break;
+            case "e": eraserClick(); break;
+            case " ": {
+                centered = true;
+                cameraPos.x = canvas.width / 2;
+                cameraPos.y = canvas.height / 2;
+                break;
+            }
+        }
+    }
+
     canvas.addEventListener("touchstart", (e) => mouseDown({ button: 0 }, e.touches[0].clientX, e.touches[0].clientY));
     canvas.addEventListener("touchend", (e) => mouseUp({ button: 0 }));
     canvas.addEventListener("touchmove", (e) => mouseMove(e.touches[0].clientX, e.touches[0].clientY));
@@ -432,6 +454,8 @@
     canvas.addEventListener("wheel", scrollWheel);
 
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+    document.addEventListener("keydown", keydown);
     
 
     document.getElementById("color1").addEventListener("click", () => colorClick("color1"));
@@ -467,6 +491,11 @@
     function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+
+        if (cameraPos.x == null || centered) {
+            cameraPos.x = canvas.width / 2;
+            cameraPos.y = canvas.height / 2;
+        }
     }
 
     function back() {

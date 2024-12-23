@@ -114,6 +114,27 @@
             padding: 0.5em 0.8em;
             cursor: pointer;
         }
+        button:hover {
+            background-color: #e5e9f0;
+        }
+
+
+        .color {
+            width: 1.5em;
+            height: 1.5em;
+            border-radius: 0.5em;
+            cursor: pointer;
+        }
+        #color1 { background-color: #BF616A; }
+        #color2 { background-color: #A3BE8C; }
+        #color3 { background-color: #EBCB8B; }
+        #color4 { background-color: #5E81AC; }
+        .colorSpacer {
+            width: 0.5em;
+        }
+        .colorSelected {
+            box-shadow: 0.1em 0.1em 0.3em #4c566a;
+        }
 
 
 
@@ -218,8 +239,13 @@
     </div>
 
     <div id="bottombar">
-        <label for="color">Color: </label>
-        <input type="color" id="color" name="color" value="#5E81AC" />
+        <div id="color1" class="color colorSelected"></div>
+        <div class="colorSpacer"></div>
+        <div id="color2" class="color"></div>
+        <div class="colorSpacer"></div>
+        <div id="color3" class="color"></div>
+        <div class="colorSpacer"></div>
+        <div id="color4" class="color"></div>
         <div class="separator"></div>
 
         <label for="erase">Eraser: </label>
@@ -253,6 +279,8 @@
     const INPUT_TIMEOUT = 5 * 1000;
     const INPUT_DELETE_TIMEOUT = 5 * 60 * 1000;
 
+    let penColor = "#BF616A";
+
 
     let mouseDown = false;
     let mouseX = 0;
@@ -285,7 +313,7 @@
         currentLineId = createId();
         const eraser = document.getElementById("erase").checked;
         currentLine = {
-            color: !eraser ? document.getElementById("color").value : BACKGROUND_COLOR,
+            color: !eraser ? penColor : BACKGROUND_COLOR,
             size: parseInt(document.getElementById("size").value),
             points: [{
                 mouseX,
@@ -313,6 +341,25 @@
         redraw = true;
     }
 
+    function colorClick(id) {
+        // penColor = document.getElementById(id).style.backgroundColor;
+        // console.log(document.getElementById(id));
+        const e = document.getElementById(id);
+        const bg = e.style.backgroundColor;
+        if (!bg) {
+            const css = window.getComputedStyle(e);
+            penColor = css.backgroundColor;
+        } else {
+            penColor = bg;
+        }
+
+        const ids = ["color1", "color2", "color3", "color4"];
+        for (const i of ids) {
+            document.getElementById(i).classList.remove("colorSelected");
+        }
+        e.classList.add("colorSelected");
+    }
+
     canvas.addEventListener("touchstart", (e) => inputStart(e.touches[0].clientX, e.touches[0].clientY));
     canvas.addEventListener("touchend", (e) => mouseDown = false);
     canvas.addEventListener("touchmove", (e) => inputMove(e.touches[0].clientX, e.touches[0].clientY));
@@ -320,6 +367,11 @@
     canvas.addEventListener("mousedown", (e) => inputStart(e.clientX, e.clientY));
     canvas.addEventListener("mouseup", (e) => mouseDown = false);
     canvas.addEventListener("mousemove", (e) => inputMove(e.clientX, e.clientY));
+
+    document.getElementById("color1").addEventListener("click", () => colorClick("color1"));
+    document.getElementById("color2").addEventListener("click", () => colorClick("color2"));
+    document.getElementById("color3").addEventListener("click", () => colorClick("color3"));
+    document.getElementById("color4").addEventListener("click", () => colorClick("color4"));
 
     function clearBoard() {
         socket.emit("clear", boardId);
@@ -344,26 +396,6 @@
 
 
     function resize() {
-        // const EM = 16; // 1em = 16px (usually)
-        // const maxW = window.innerWidth * (3 / 4) - 3 * EM - 8;
-        // const maxH = window.innerHeight - 2 * EM - 8;
-
-        // const ratio = 4 / 3;
-
-        // const w = Math.min(maxW, maxH * ratio);
-        // const h = Math.min(maxH, maxW / ratio);
-        
-        // canvas.style.width = w + "px";
-        // canvas.style.height = h + "px";
-        
-        // canvas.width = w;
-        // canvas.height = h;
-
-        // const sidebarW = (window.innerWidth * w - 3 * EM);
-        // const sidebarEle = document.getElementById("sidebar");
-        // sidebarEle.style.width = sidebarW + "px";
-
-        // redraw = true;
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }

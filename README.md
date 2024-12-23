@@ -6,7 +6,6 @@ Easy to use real-time multi-user online whiteboard
 
 - Performance improvements
     - SVG?
-- Scaling: use minimun dimension instead of width
 - Erase whole line
 - Undo/Redo
 - Zoom

@@ -535,6 +535,9 @@
     //--------------------------------------------------------------------------------------------//
     function loop() {
         let redraw_queue = false;
+
+        let wMod = Math.min(canvas.width, canvas.height) / 5000
+
         //----------------------------------------------------------------------------------------//
         if (redraw) {
             ctx.fillStyle = BACKGROUND_COLOR;
@@ -545,7 +548,7 @@
 
                 ctx.strokeStyle = line.color;
                 ctx.fillStyle = line.color;
-                ctx.lineWidth = Math.max(line.size * canvas.width / 5000, 1);
+                ctx.lineWidth = Math.max(line.size * wMod, 1);
 
                 const [startX, startY] = drawPos(line.points[0].mouseX, line.points[0].mouseY);
 
@@ -608,7 +611,7 @@
         //----------------------------------------------------------------------------------------//
         if (redraw) {
             const lineSize = parseInt(document.getElementById("size").value);
-            const radius = Math.max(lineSize * canvas.width / 5000, 1) / 2;
+            const radius = Math.max(lineSize * wMod, 1) / 2;
 
             ctx.strokeStyle = BACKGROUND_COLOR;
             ctx.lineWidth = 3;

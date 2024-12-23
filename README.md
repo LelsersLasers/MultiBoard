@@ -2,6 +2,13 @@
 
 Easy to use real-time multi-user online whiteboard
 
+## TODO
+
+- Performance improvements
+- Erase whole line
+- Undo/Redo
+- Scrolling
+
 ## Features
 
 - Create whiteboards

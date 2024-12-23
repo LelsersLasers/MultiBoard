@@ -8,8 +8,7 @@ Easy to use real-time multi-user online whiteboard
     - SVG?
 - Erase whole line
 - Undo/Redo
-- Zoom
-- Centering
+- Line widths scale with zoom
 
 ## Features
 

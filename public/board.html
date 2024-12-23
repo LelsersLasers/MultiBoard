@@ -257,6 +257,7 @@
         const rect = canvas.getBoundingClientRect();
         let x = clientX - rect.left;
         let y = clientY - rect.top;
+
         return [x, y];
     }
 
@@ -265,6 +266,12 @@
             (x * cameraZoom) + cameraPos.x,
             (y * cameraZoom) + cameraPos.y,
         ];
+    }
+    function serverPos(x, y) {
+        return {
+            mouseX: (x - cameraPos.x) / cameraZoom,
+            mouseY: (y - cameraPos.y) / cameraZoom,
+        };
     }
 
 
@@ -279,10 +286,7 @@
             currentLine = {
                 color: !eraser ? penColor : BACKGROUND_COLOR,
                 size: !eraser ? penWidth : eraserWidth,
-                points: [{
-                    mouseX: mouseX - cameraPos.x,
-                    mouseY: mouseY - cameraPos.y,
-                }],
+                points: [serverPos(mouseX, mouseY)],
             };
             socket.emit('createLine', { boardId, lineId: currentLineId, line: currentLine });
         }
@@ -300,10 +304,7 @@
         if (penDown) {
             [mouseX, mouseY] = mousePos(clientX, clientY);
 
-            const pt = {
-                mouseX: mouseX - cameraPos.x,
-                mouseY: mouseY - cameraPos.y,
-            };
+            const pt = serverPos(mouseX, mouseY);
 
             socket.emit('updateLine', { boardId, lineId: currentLineId, pt });
         } else if (dragging) {
@@ -324,8 +325,7 @@
 
         socket.emit('inputMove', {
             boardId,
-            mouseX: mouseX - cameraPos.x,
-            mouseY: mouseY - cameraPos.y,
+            ...serverPos(mouseX, mouseY),
         });
         redraw = true;
     }
@@ -335,6 +335,12 @@
         cameraZoom -= delta * cameraZoom * 0.2;
         cameraZoom = Math.max(0.1, cameraZoom);
         cameraZoom = Math.min(10, cameraZoom);
+
+        // const dx = mouseX - cameraPos.x;
+        // const dy = mouseY - cameraPos.y;
+
+        // cameraPos.x = mouseX - (dx * cameraZoom);
+        // cameraPos.y = mouseY - (dy * cameraZoom);
     }
 
 

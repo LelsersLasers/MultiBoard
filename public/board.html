@@ -74,11 +74,24 @@
             transform: translate(-50%, 0);
         }
 
+        #bottombar {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75em;
+            background-color: #ECEFF4;
+            z-index: 1;
+            border-radius: 0.5em;
+            box-shadow: 0.3em 0.3em 0.8em #d8dee9;
+
+            position: fixed;
+            bottom: 1em;
+            left: 50%;
+            transform: translate(-50%, 0);
+        }
+
         .separator {
-            /* font-size: 2em;
-            padding: 0;
-            padding-left: 0.2em;
-            padding-right: 0.2em; */
             width: 0.2em;
             height: 1.5em;
             border-radius: 0.5em;
@@ -101,6 +114,8 @@
             padding: 0.5em 0.8em;
             cursor: pointer;
         }
+
+
 
         /* .spacing {
             content: "";
@@ -190,9 +205,19 @@
         <p id="id">ID: ?</p>
         <div class="separator"></div>
 
-        <button id="copy" onclick="copyLink()">Copy link</button>
+        <button id="copy" onclick="copyLink()">Copy Link</button>
         <div class="separator"></div>
 
+        <button id="clear" onclick="clearBoard()">Clear</button>
+        <div class="separator"></div>
+
+        <button id="save" onclick="saveAsPng()">Save as PNG</button>
+        <div class="separator"></div>
+
+        <button id="back" onclick="back()">Exit</button>
+    </div>
+
+    <div id="bottombar">
         <label for="color">Color: </label>
         <input type="color" id="color" name="color" value="#5E81AC" />
         <div class="separator"></div>
@@ -207,46 +232,7 @@
         <div class="separator"></div>
 
         <button id="clear" onclick="clearBoard()">Clear</button>
-        <div class="separator"></div>
-
-        <button id="save" onclick="saveAsPng()">Save as PNG</button>
-        <div class="separator"></div>
-
-        <button id="back" onclick="back()">Exit</button>
-
-    <!-- <div id="sidebar">
-        <h2 id="id">ID: ?</h2>
-        <button id="copy" onclick="copyLink()">Copy link</button>
-
-        <hr />
-
-        <label for="color">Color: </label>
-        <input type="color" id="color" name="color" value="#5E81AC" />
-
-        <br class="spacing" />
-
-        <label for="erase">Eraser: </label>
-        <input type="checkbox" id="erase" name="erase" />
-
-        <br class="spacing" />
-
-        <label for="size">Size: </label>
-        <output>25</output>
-        <input type="range" id="size" name="size" min="1" max="200" step="1" value="25" oninput="this.previousElementSibling.value = this.value" />
-
-        <label for="renderOptimization">Render optimization: </label>
-        <output>1</output>
-        <input type="range" id="renderOptimization" name="size" min="1" max="4" step="1" value="1" oninput="this.previousElementSibling.value = this.value" />
-
-        <hr />
-
-        <button id="save" onclick="saveAsPng()">Save as PNG</button>
-        <button id="clear" onclick="clearBoard()" style="margin-bottom: 0;">Clear</button>
-
-        <hr />
-
-        <button id="back" onclick="back()">Exit</button>
-    </div> -->
+    </div>
 </body>
 
 <script>

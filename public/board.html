@@ -231,7 +231,8 @@
     let cameraZoom = 1;
 
 
-    let mouseDown = false;
+    let penDown = false;
+    let dragging = false;
     let mouseX = 0;
     let mouseY = 0;
 
@@ -251,42 +252,84 @@
         return id;
     }
 
-
-    function inputStart(clientX, clientY) {
-        mouseDown = true;
-
+    function mousePos(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
-        mouseX = (clientX - rect.left) / canvas.width;
-        mouseY = (clientY - rect.top) / canvas.height;
-
-        currentLineId = createId();
-        currentLine = {
-            color: !eraser ? penColor : BACKGROUND_COLOR,
-            size: !eraser ? penWidth : eraserWidth,
-            points: [{
-                mouseX,
-                mouseY,
-            }],
-        };
-        socket.emit('createLine', { boardId, lineId: currentLineId, line: currentLine });
+        let x = clientX - rect.left;
+        let y = clientY - rect.top;
+        return [x, y];
     }
 
-    function inputMove(clientX, clientY) {
-        const rect = canvas.getBoundingClientRect();
-        mouseX = (clientX - rect.left) / canvas.width;
-        mouseY = (clientY - rect.top) / canvas.height;
+    function drawPos(x, y) {
+        return [x - cameraPos.x, y - cameraPos.y];
+    }
 
-        if (mouseDown) {
+
+    function mouseDown(e, clientX, clientY) {
+        console.log(e.button);
+        if (e.button == 2 || e.button == 1) {
+            dragging = true;  
+        } else if (e.button == 0) {
+            penDown = true;
+            [mouseX, mouseY] = mousePos(clientX, clientY);
+
+            currentLineId = createId();
+            currentLine = {
+                color: !eraser ? penColor : BACKGROUND_COLOR,
+                size: !eraser ? penWidth : eraserWidth,
+                points: [{
+                    mouseX: mouseX + cameraPos.x,
+                    mouseY: mouseY + cameraPos.y,
+                }],
+            };
+            socket.emit('createLine', { boardId, lineId: currentLineId, line: currentLine });
+        }
+    }
+
+    function mouseUp(e) {
+        if (e.button == 2 || e.button == 1) {
+            dragging = false;
+        } else if (e.button == 0) {
+            penDown = false;
+        }
+    }
+
+    function mouseMove(clientX, clientY) {
+        if (penDown) {
+            [mouseX, mouseY] = mousePos(clientX, clientY);
+
             const pt = {
-                mouseX,
-                mouseY,
+                mouseX: mouseX + cameraPos.x,
+                mouseY: mouseY + cameraPos.y,
             };
 
             socket.emit('updateLine', { boardId, lineId: currentLineId, pt });
+        } else if (dragging) {
+            const [x, y] = mousePos(clientX, clientY);
+            const dx = x - mouseX;
+            const dy = y - mouseY;
+
+            cameraPos.x -= dx / cameraZoom;
+            cameraPos.y -= dy / cameraZoom;
+
+            mouseX = x;
+            mouseY = y;
+        } else {
+            [mouseX, mouseY] = mousePos(clientX, clientY);
         }
 
-        socket.emit('inputMove', { boardId, mouseX, mouseY });
+        socket.emit('inputMove', {
+            boardId,
+            mouseX: mouseX + cameraPos.x,
+            mouseY: mouseY + cameraPos.y,
+        });
         redraw = true;
+    }
+
+    function scrollWheel(e) {
+        const delta = Math.max(-1, Math.min(1, e.deltaY));
+        cameraZoom += delta * 0.1;
+        cameraZoom = Math.max(0.1, cameraZoom);
+        cameraZoom = Math.min(10, cameraZoom);
     }
 
 
@@ -377,14 +420,19 @@
         }
     }
 
-    canvas.addEventListener("touchstart", (e) => inputStart(e.touches[0].clientX, e.touches[0].clientY));
-    canvas.addEventListener("touchend", (e) => mouseDown = false);
-    canvas.addEventListener("touchmove", (e) => inputMove(e.touches[0].clientX, e.touches[0].clientY));
+    canvas.addEventListener("touchstart", (e) => mouseDown({ button: 0 }, e.touches[0].clientX, e.touches[0].clientY));
+    canvas.addEventListener("touchend", (e) => mouseUp({ button: 0 }));
+    canvas.addEventListener("touchmove", (e) => mouseMove(e.touches[0].clientX, e.touches[0].clientY));
 
-    canvas.addEventListener("mousedown", (e) => inputStart(e.clientX, e.clientY));
-    canvas.addEventListener("mouseup", (e) => mouseDown = false);
-    canvas.addEventListener("mousemove", (e) => inputMove(e.clientX, e.clientY));
-    canvas.addEventListener("mouseleave", (e) => mouseDown = false);
+    canvas.addEventListener("mousedown", (e) => mouseDown(e, e.clientX, e.clientY));
+    canvas.addEventListener("mouseup", (e) => mouseUp(e));
+    canvas.addEventListener("mousemove", (e) => mouseMove(e.clientX, e.clientY));
+    canvas.addEventListener("mouseleave", (e) => mouseUp(e));
+
+    canvas.addEventListener("wheel", scrollWheel);
+
+    canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+    
 
     document.getElementById("color1").addEventListener("click", () => colorClick("color1"));
     document.getElementById("color2").addEventListener("click", () => colorClick("color2"));
@@ -470,8 +518,7 @@
                 ctx.fillStyle = line.color;
                 ctx.lineWidth = Math.max(line.size * canvas.width / 5000, 1);
 
-                const startX = line.points[0].mouseX * canvas.width;
-                const startY = line.points[0].mouseY * canvas.height;
+                const [startX, startY] = drawPos(line.points[0].mouseX, line.points[0].mouseY);
 
                 ctx.beginPath();
                 ctx.ellipse(startX, startY, ctx.lineWidth / 2, ctx.lineWidth / 2, 0, 0, 2 * Math.PI);
@@ -483,15 +530,14 @@
 
                 for (let i = 0; i < line.points.length; i++) {
                     const { mouseX, mouseY } = line.points[i];
-                    ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
+                    const [x, y] = drawPos(mouseX, mouseY);
+                    ctx.lineTo(x, y);
                 }
                 const { mouseX, mouseY } = line.points[line.points.length - 1];
-                ctx.lineTo(mouseX * canvas.width, mouseY * canvas.height);
+                const [endX, endY] = drawPos(mouseX, mouseY);
+                ctx.lineTo(endX, endY);
 
                 ctx.stroke();
-
-                const endX = line.points[line.points.length - 1].mouseX * canvas.width;
-                const endY = line.points[line.points.length - 1].mouseY * canvas.height;
 
                 ctx.beginPath();
                 ctx.ellipse(endX, endY, ctx.lineWidth / 2, ctx.lineWidth / 2, 0, 0, 2 * Math.PI);
@@ -515,15 +561,17 @@
 
             ctx.fillStyle = mouse.color;
 
+            const [x, y] = drawPos(mouse.mouseX, mouse.mouseY);
+
             ctx.beginPath();
-            ctx.ellipse(mouse.mouseX * canvas.width, mouse.mouseY * canvas.height, 4, 4, 0, 0, 2 * Math.PI);
+            ctx.ellipse(x, y, 4, 4, 0, 0, 2 * Math.PI);
             ctx.fill();
 
             ctx.strokeStyle = BACKGROUND_COLOR;
             ctx.lineWidth = 1;
 
             ctx.beginPath();
-            ctx.ellipse(mouse.mouseX * canvas.width, mouse.mouseY * canvas.height, 4, 4, 0, 0, 2 * Math.PI);
+            ctx.ellipse(x, y, 4, 4, 0, 0, 2 * Math.PI);
             ctx.stroke();
         }
         //----------------------------------------------------------------------------------------//
@@ -537,7 +585,7 @@
             ctx.lineWidth = 3;
 
             ctx.beginPath();
-            ctx.ellipse(mouseX * canvas.width, mouseY * canvas.height, radius, radius, 0, 0, 2 * Math.PI);
+            ctx.ellipse(mouseX, mouseY, radius, radius, 0, 0, 2 * Math.PI);
             ctx.stroke();
 
             2E3440
@@ -545,7 +593,7 @@
             ctx.lineWidth = 1;
 
             ctx.beginPath();
-            ctx.ellipse(mouseX * canvas.width, mouseY * canvas.height, radius, radius, 0, 0, 2 * Math.PI);
+            ctx.ellipse(mouseX, mouseY, radius, radius, 0, 0, 2 * Math.PI);
             ctx.stroke();
 
             redraw = false;

@@ -280,6 +280,7 @@
     const INPUT_DELETE_TIMEOUT = 5 * 60 * 1000;
 
     let penColor = "#BF616A";
+    let colorId = "color1";
 
 
     let mouseDown = false;
@@ -341,23 +342,54 @@
         redraw = true;
     }
 
-    function colorClick(id) {
-        // penColor = document.getElementById(id).style.backgroundColor;
-        // console.log(document.getElementById(id));
-        const e = document.getElementById(id);
-        const bg = e.style.backgroundColor;
-        if (!bg) {
-            const css = window.getComputedStyle(e);
-            penColor = css.backgroundColor;
-        } else {
-            penColor = bg;
+
+    function colorFromEle(ele) {
+        function componentToHex(c) {
+            const hex = c.toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+        }
+        function rgbToHex(r, g, b) {
+            return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
         }
 
-        const ids = ["color1", "color2", "color3", "color4"];
-        for (const i of ids) {
-            document.getElementById(i).classList.remove("colorSelected");
+        const bg = ele.style.backgroundColor;
+        let value;
+        if (!bg) {
+            const css = window.getComputedStyle(ele);
+            value = css.backgroundColor;
+        } else {
+            value = bg;
         }
-        e.classList.add("colorSelected");
+        if (value.startsWith("rgb")) {
+            const [r, g, b] = value.substring(4, value.length - 1).split(", ").map((x) => parseInt(x));
+            return rgbToHex(r, g, b);
+        }
+    }
+
+    function colorClick(id) {
+        const ele = document.getElementById(id);
+        if (id == colorId) {
+            const colorPicker = document.createElement("input");
+            colorPicker.type = "color";
+
+            colorPicker.value = colorFromEle(ele);
+
+            colorPicker.style.display = "none";
+            colorPicker.oninput = (e) => {
+                penColor = e.target.value;
+                ele.style.backgroundColor = penColor;
+            };
+            colorPicker.click();
+        } else {
+            penColor = colorFromEle(ele);
+
+            const ids = ["color1", "color2", "color3", "color4"];
+            for (const i of ids) {
+                document.getElementById(i).classList.remove("colorSelected");
+            }
+            ele.classList.add("colorSelected");
+            colorId = id;
+        }
     }
 
     canvas.addEventListener("touchstart", (e) => inputStart(e.touches[0].clientX, e.touches[0].clientY));
@@ -367,6 +399,7 @@
     canvas.addEventListener("mousedown", (e) => inputStart(e.clientX, e.clientY));
     canvas.addEventListener("mouseup", (e) => mouseDown = false);
     canvas.addEventListener("mousemove", (e) => inputMove(e.clientX, e.clientY));
+    canvas.addEventListener("mouseleave", (e) => mouseDown = false);
 
     document.getElementById("color1").addEventListener("click", () => colorClick("color1"));
     document.getElementById("color2").addEventListener("click", () => colorClick("color2"));

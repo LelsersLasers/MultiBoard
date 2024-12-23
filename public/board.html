@@ -336,8 +336,10 @@
         // const dx = mouseX - cameraPos.x;
         // const dy = mouseY - cameraPos.y;
 
-        // cameraPos.x = mouseX - (dx * cameraZoom);
-        // cameraPos.y = mouseY - (dy * cameraZoom);
+        // cameraPos.x += dx * delta * 0.1;
+        
+
+        redraw = true;
     }
 
 

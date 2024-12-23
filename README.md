@@ -10,6 +10,9 @@ Easy to use real-time multi-user online whiteboard
 - Undo/Redo
 - Zoom in/out on mouse pos
 - Mobile support
+    - Top/bottom bars
+    - Buttons for every key
+    - Zoom, drag, etc
 
 ## Features
 

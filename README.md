@@ -9,6 +9,8 @@ Easy to use real-time multi-user online whiteboard
 - Erase whole line
 - Undo/Redo
 - Line widths scale with zoom
+- Zoom in/out on mouse pos
+- Mobile support
 
 ## Features
 

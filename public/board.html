@@ -20,6 +20,7 @@
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.classless.min.css"
     /> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 
@@ -136,6 +137,19 @@
             box-shadow: 0.1em 0.1em 0.3em #4c566a;
         }
 
+        svg {
+            width: 1.2em;
+            height: 1.2em;
+            border-radius: 0.5em;
+            box-shadow: 0.1em 0.1em 0.3em #4c566a;
+            cursor: pointer;
+            padding: 0.25em;
+            margin: 0;
+        }
+        svg:hover {
+            background-color: #e5e9f0;
+        }
+
 
 
         /* .spacing {
@@ -248,8 +262,12 @@
         <div id="color4" class="color"></div>
         <div class="separator"></div>
 
-        <label for="erase">Eraser: </label>
-        <input type="checkbox" id="erase" name="erase" />
+        <!-- <label for="erase">&#xF331; : </label> -->
+        <!-- <label for="erase"><i class="fa fa-eraser"></i> : </label>
+        <input type="checkbox" id="erase" name="erase" /> -->
+        
+ 
+        <svg id="eraser" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M290.7 57.4L57.4 290.7c-25 25-25 65.5 0 90.5l80 80c12 12 28.3 18.7 45.3 18.7L288 480l9.4 0L512 480c17.7 0 32-14.3 32-32s-14.3-32-32-32l-124.1 0L518.6 285.3c25-25 25-65.5 0-90.5L381.3 57.4c-25-25-65.5-25-90.5 0zM297.4 416l-9.4 0-105.4 0-80-80L227.3 211.3 364.7 348.7 297.4 416z"/></svg>
         <div class="separator"></div>
 
         <label for="size">Size: </label>
@@ -281,6 +299,10 @@
 
     let penColor = "#BF616A";
     let colorId = "color1";
+    let penWidth = 25;
+
+    let eraser = false;
+    let eraserWidth = 40;
 
 
     let mouseDown = false;
@@ -312,10 +334,9 @@
         mouseY = (clientY - rect.top) / canvas.height;
 
         currentLineId = createId();
-        const eraser = document.getElementById("erase").checked;
         currentLine = {
             color: !eraser ? penColor : BACKGROUND_COLOR,
-            size: parseInt(document.getElementById("size").value),
+            size: !eraser ? penWidth : eraserWidth,
             points: [{
                 mouseX,
                 mouseY,
@@ -367,6 +388,14 @@
     }
 
     function colorClick(id) {
+        eraser = false;
+
+        // parseInt(document.getElementById("size").value),
+
+        const widthEle = document.getElementById("size");
+        widthEle.value = penWidth;
+        widthEle.previousElementSibling.value = penWidth;
+
         const ele = document.getElementById(id);
         if (id == colorId) {
             const colorPicker = document.createElement("input");
@@ -392,6 +421,38 @@
         }
     }
 
+    function eraserClick() {
+        eraser = !eraser;
+        const ele = document.getElementById("eraser");
+        if (eraser) {
+            ele.style.backgroundColor = "#d8dee9";
+
+            const widthEle = document.getElementById("size");
+            widthEle.value = eraserWidth;
+            widthEle.previousElementSibling.value = eraserWidth;
+
+            const ids = ["color1", "color2", "color3", "color4"];
+            for (const i of ids) {
+                document.getElementById(i).classList.remove("colorSelected");
+            }
+        } else {
+            ele.style.backgroundColor = "#ECEFF4";
+            document.getElementById(colorId).classList.add("colorSelected");
+
+            const widthEle = document.getElementById("size");
+            widthEle.value = penWidth;
+            widthEle.previousElementSibling.value = penWidth;
+        }
+    }
+
+    function widthChange(e) {
+        if (eraser) {
+            eraserWidth = parseInt(e.target.value);
+        } else {
+            penWidth = parseInt(e.target.value);
+        }
+    }
+
     canvas.addEventListener("touchstart", (e) => inputStart(e.touches[0].clientX, e.touches[0].clientY));
     canvas.addEventListener("touchend", (e) => mouseDown = false);
     canvas.addEventListener("touchmove", (e) => inputMove(e.touches[0].clientX, e.touches[0].clientY));
@@ -405,6 +466,9 @@
     document.getElementById("color2").addEventListener("click", () => colorClick("color2"));
     document.getElementById("color3").addEventListener("click", () => colorClick("color3"));
     document.getElementById("color4").addEventListener("click", () => colorClick("color4"));
+
+    document.getElementById("eraser").addEventListener("click", eraserClick);
+    document.getElementById("size").addEventListener("input", widthChange);
 
     function clearBoard() {
         socket.emit("clear", boardId);

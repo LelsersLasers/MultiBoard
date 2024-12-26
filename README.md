@@ -7,7 +7,6 @@ Easy to use real-time multi-user online whiteboard
 - Zoom in/out with drag
 - Performance improvements
     - SVG?
-- Erase whole line
 - Mobile support
     - Top/bottom bars
     - Buttons for every key

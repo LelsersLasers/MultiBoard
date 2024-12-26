@@ -471,10 +471,6 @@
         }
     }
 
-    canvas.addEventListener("touchstart", (e) => mouseDown({ button: 0 }, e.touches[0].clientX, e.touches[0].clientY));
-    canvas.addEventListener("touchend", (e) => mouseUp({ button: 0 }));
-    canvas.addEventListener("touchmove", (e) => mouseMove(e.touches[0].clientX, e.touches[0].clientY));
-
     canvas.addEventListener("mousedown", (e) => mouseDown(e, e.clientX, e.clientY));
     canvas.addEventListener("mouseup", (e) => mouseUp(e));
     canvas.addEventListener("mousemove", (e) => mouseMove(e.clientX, e.clientY));

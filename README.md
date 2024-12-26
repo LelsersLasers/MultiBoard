@@ -2,16 +2,6 @@
 
 Easy to use real-time multi-user online whiteboard
 
-## TODO
-
-- Zoom in/out with drag
-- Performance improvements
-    - SVG?
-- Mobile support
-    - Top/bottom bars
-    - Buttons for every key
-    - Zoom, drag, etc
-
 ## Features
 
 - Create whiteboards

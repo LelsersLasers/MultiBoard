@@ -4,11 +4,11 @@ Easy to use real-time multi-user online whiteboard
 
 ## TODO
 
+- Zoom in/out with drag
 - Performance improvements
     - SVG?
 - Erase whole line
 - Undo/Redo
-- Zoom in/out on mouse pos
 - Mobile support
     - Top/bottom bars
     - Buttons for every key

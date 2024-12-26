@@ -228,6 +228,8 @@
     let centered = true;
     let cameraZoom = 1;
 
+    let undoStack = [];
+    let redoStack = [];
 
     let penDown = false;
     let dragging = false;
@@ -286,6 +288,7 @@
                 points: [serverPos(mouseX, mouseY)],
             };
             socket.emit('createLine', { boardId, lineId: currentLineId, line: currentLine });
+            undoStack.push(currentLineId);
         }
     }
 
@@ -340,6 +343,24 @@
         
 
         redraw = true;
+    }
+
+    function undo() {
+        const lineId = undoStack.pop();
+        if (lineId) {
+            redoStack.push(lines[lineId]);
+            socket.emit("deleteLine", { boardId, lineId });
+        }
+    }
+
+    function redo() {
+        const line = redoStack.pop();
+        if (line) {
+            const lineId = createId();
+            // lines[lineId] = line;
+            undoStack.push(lineId);
+            socket.emit("createLine", { boardId, lineId, line });
+        }
     }
 
 
@@ -438,6 +459,8 @@
             case "3": colorClick("color3"); break;
             case "4": colorClick("color4"); break;
             case "e": eraserClick(); break;
+            case "z": undo(); break;
+            case "y": redo(); break;
             case " ": {
                 centered = true;
                 cameraPos.x = canvas.width / 2;
@@ -486,6 +509,10 @@
     });
     socket.on(`lineUpdate`, ({ lineId, pt }) => {
         lines[lineId].points.push(pt);
+        redraw = true;
+    });
+    socket.on(`lineDelete`, (lineId) => {
+        delete lines[lineId];
         redraw = true;
     });
     socket.on(`mice`, (newMice) => {

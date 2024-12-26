@@ -143,6 +143,17 @@ io.on('connection', (socket) => {
 
         io.to(`room-${boardId}`).emit(`lineUpdate`, ({ lineId, pt }));
 	});
+	socket.on('deleteLine', ({ boardId, lineId }) => {
+		if (!boards[boardId] || !boards[boardId].lines[lineId]) {
+			return;
+		}
+
+		delete boards[boardId].lines[lineId];
+
+		boards[boardId].timestamp = Date.now();
+
+		io.to(`room-${boardId}`).emit(`lineDelete`, lineId);
+	});
 	socket.on('clear', (boardId) => {
 		boards[boardId].lines = {};
 

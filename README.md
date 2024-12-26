@@ -8,7 +8,6 @@ Easy to use real-time multi-user online whiteboard
 - Performance improvements
     - SVG?
 - Erase whole line
-- Undo/Redo
 - Mobile support
     - Top/bottom bars
     - Buttons for every key

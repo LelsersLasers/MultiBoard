@@ -9,7 +9,7 @@ Easy to use real-time multi-user online whiteboard
 - Share whiteboards directly by link
 - Real-time collaboration with websockets
 - High performance backend designed to minimize latency
-- Designed for both desktop and mobile
+- Designed with desktop in mind
 - Simple, clean, and responsive UI
 - 100% free and open source
 
